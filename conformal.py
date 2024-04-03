@@ -24,6 +24,7 @@ class ConformalModel(nn.Module):
         self.allow_zero_sets=allow_zero_sets
         self.num_classes = len(calib_loader.dataset.dataset.classes)
 
+        print('modified')
         if kreg == None or lamda == None:
             kreg, lamda, calib_logits = pick_parameters(model, calib_logits, alpha, kreg, lamda, randomized, allow_zero_sets, pct_paramtune, batch_size, lamda_criterion)
 
