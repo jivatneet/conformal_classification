@@ -135,6 +135,7 @@ class ConformalModelLogits(nn.Module):
         return logits, S
 
 def conformal_calibration_logits(cmodel, calib_loader):
+    print("calib logits")
     with torch.no_grad():
         E = np.array([])
         for logits, targets in calib_loader:
