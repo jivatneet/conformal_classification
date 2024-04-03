@@ -43,7 +43,8 @@ class ConformalModel(nn.Module):
         
         with torch.no_grad():
             logits_numpy = logits.detach().cpu().numpy()
-            scores = softmax(logits_numpy/self.T.item(), axis=1)
+            # scores = softmax(logits_numpy/self.T.item(), axis=1)
+            scores = softmax(logits_numpy, axis=1)
 
             I, ordered, cumsum = sort_sum(scores)
 
@@ -58,7 +59,8 @@ def conformal_calibration(cmodel, calib_loader):
         E = np.array([])
         for x, targets in tqdm(calib_loader):
             logits = cmodel.model(x.cuda()).detach().cpu().numpy()
-            scores = softmax(logits/cmodel.T.item(), axis=1)
+            # scores = softmax(logits/cmodel.T.item(), axis=1)
+            scores = softmax(logits, axis=1)
 
             I, ordered, cumsum = sort_sum(scores)
 
@@ -111,6 +113,7 @@ class ConformalModelLogits(nn.Module):
         if not naive and not LAC:
             self.Qhat = conformal_calibration_logits(self, calib_loader)
         elif not naive and LAC:
+            print('using LAC')
             gt_locs_cal = np.array([np.where(np.argsort(x[0]).flip(dims=(0,)) == x[1])[0][0] for x in calib_loader.dataset])
             scores_cal = 1-np.array([np.sort(torch.softmax(calib_loader.dataset[i][0]/self.T.item(), dim=0))[::-1][gt_locs_cal[i]] for i in range(len(calib_loader.dataset))]) 
             self.Qhat = np.quantile( scores_cal , np.ceil((scores_cal.shape[0]+1) * (1-alpha)) / scores_cal.shape[0] )
@@ -123,7 +126,8 @@ class ConformalModelLogits(nn.Module):
         
         with torch.no_grad():
             logits_numpy = logits.detach().cpu().numpy()
-            scores = softmax(logits_numpy/self.T.item(), axis=1)
+            # scores = softmax(logits_numpy/self.T.item(), axis=1)
+            scores = softmax(logits_numpy, axis=1)
 
             if not self.LAC:
                 I, ordered, cumsum = sort_sum(scores)
@@ -135,13 +139,13 @@ class ConformalModelLogits(nn.Module):
         return logits, S
 
 def conformal_calibration_logits(cmodel, calib_loader):
-    print("calib logits")
     with torch.no_grad():
         E = np.array([])
         for logits, targets in calib_loader:
             logits = logits.detach().cpu().numpy()
 
-            scores = softmax(logits/cmodel.T.item(), axis=1)
+            # scores = softmax(logits/cmodel.T.item(), axis=1)
+            scores = softmax(logits, axis=1)
 
             I, ordered, cumsum = sort_sum(scores)
 
